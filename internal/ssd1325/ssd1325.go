@@ -14,6 +14,12 @@ import (
 	"periph.io/x/periph/conn/spi/spireg"
 )
 
+// ScreenWidth is the screen width in pixels
+const ScreenWidth = 128
+
+// ScreenHeight is the screen height in pixels
+const ScreenHeight = 64
+
 // SSD1325 provides support for displays based on SSD1325 chip.
 // Only SPI mode is supported.
 type SSD1325 struct {
@@ -31,7 +37,7 @@ func New(spiDevName, dcPinName, resetPinName string) (*SSD1325, error) {
 	}
 
 	// TODO: Pick appropriate speed.
-	conn, err := port.Connect(10*physic.KiloHertz, spi.Mode0, 8)
+	conn, err := port.Connect(physic.MegaHertz, spi.Mode0, 8)
 	if err != nil {
 		return nil, err
 	}
@@ -81,12 +87,12 @@ func (s *SSD1325) command(cmd []byte) error {
 
 func (s *SSD1325) reset() error {
 	log.Debugf("resetting the display module")
-	err := s.resetPin.Out(gpio.High)
+	err := s.resetPin.Out(gpio.Low)
 	if err != nil {
 		return err
 	}
 	time.Sleep(time.Millisecond)
-	err = s.resetPin.Out(gpio.Low)
+	err = s.resetPin.Out(gpio.High)
 	if err != nil {
 		return err
 	}
@@ -103,6 +109,7 @@ func (s *SSD1325) init() error {
 		return err
 	}
 
+	log.Debugf("sending start commands")
 	err = s.command(
 		[]byte{
 			0xAE,       // Display off (all pixels off)
@@ -131,6 +138,7 @@ func (s *SSD1325) init() error {
 		return err
 	}
 
+	log.Debugf("initialization done")
 	return nil
 }
 
@@ -139,4 +147,32 @@ func (s *SSD1325) Close() error {
 	return s.port.Close()
 }
 
-// TODO: The rest of methods.
+// Display a frame buffer on the screen.
+func (s *SSD1325) Display(data []byte) error {
+	if len(data) != ScreenWidth*ScreenHeight {
+		return fmt.Errorf("wrong size of buffer. expected %v", ScreenWidth*ScreenHeight)
+	}
+
+	err := s.command(
+		[]byte{
+			0x15, // set column address
+			0x00, // set column start address
+			0x3f, // set column end address
+			0x75, // set row address
+			0x00, // set row start address
+			0x3f, // set row end address
+		},
+	)
+	if err != nil {
+		return err
+	}
+
+	for row := 0; row < ScreenHeight; row++ {
+		rowStart := row * ScreenWidth
+		err = s.data(data[rowStart : rowStart+ScreenWidth])
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
