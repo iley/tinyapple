@@ -36,8 +36,8 @@ func New(spiDevName, dcPinName, resetPinName string) (*SSD1325, error) {
 		return nil, err
 	}
 
-	// TODO: Pick appropriate speed.
-	conn, err := port.Connect(physic.MegaHertz, spi.Mode0, 8)
+	// conn, err := port.Connect(4*physic.MegaHertz, spi.Mode0|spi.HalfDuplex, 8)
+	conn, err := port.Connect(4*physic.MegaHertz, spi.Mode0, 8)
 	if err != nil {
 		return nil, err
 	}
@@ -81,22 +81,33 @@ func (s *SSD1325) data(data []byte) error {
 	return s.spiWrite(gpio.High, data)
 }
 
-func (s *SSD1325) command(cmd []byte) error {
+func (s *SSD1325) command(cmd ...byte) error {
 	return s.spiWrite(gpio.Low, cmd)
 }
 
 func (s *SSD1325) reset() error {
 	log.Debugf("resetting the display module")
-	err := s.resetPin.Out(gpio.Low)
+
+	err := s.resetPin.Out(gpio.High)
 	if err != nil {
 		return err
 	}
 	time.Sleep(time.Millisecond)
-	err = s.resetPin.Out(gpio.High)
+
+	err = s.resetPin.Out(gpio.Low)
 	if err != nil {
 		return err
 	}
 	time.Sleep(10 * time.Millisecond)
+
+	err = s.resetPin.Out(gpio.High)
+	if err != nil {
+		return err
+	}
+
+	// Wait a while after reset.
+	time.Sleep(500 * time.Millisecond)
+
 	return nil
 }
 
@@ -109,30 +120,37 @@ func (s *SSD1325) init() error {
 		return err
 	}
 
-	log.Debugf("sending start commands")
+	err = s.command(0xAF) // Display on.
+	if err != nil {
+		return err
+	}
+	time.Sleep(100 * time.Millisecond)
+
 	err = s.command(
-		[]byte{
-			0xAE,       // Display off (all pixels off)
-			0xA0, 0x53, // Segment remap (com split, com remap, nibble remap, column remap)
-			0xA1, 0x00, // Display start line
-			0xA2, 0x00, // Display offset
-			0xA4,       // regular display
-			0xA8, 0x7F, // set multiplex ratio: 127
+		0xAE,       // Display off.
+		0xB3, 0xF1, // Set clock divider.
+		0xA8, 0x3F, // Set multiplex ratio duty = 1/64
+		0xA2, 0x4C, // Set display offset.
+		0xA1, 0x00, // Set display start line.
+		0xAD, 0x02, // Master config.
+		0xA0, 0x56, // Segment remap.
 
-			0xB8, 0x01, 0x11, // Set greyscale table
-			0x22, 0x32, 0x43, // .. cont
-			0x54, 0x65, 0x76, // .. cont
+		0x84+0x2, // Set full current range.
 
-			0xB3, 0x00, // Front clock divider: 0, Fosc: 0
-			0xAB, 0x01, // Enable Internal Vdd
+		0xB8, 0x01, 0x11, // Set greyscale table
+		0x22, 0x32, 0x43, // ...
+		0x54, 0x65, 0x76, // ...
 
-			0xB1, 0xF1, // Set phase periods - 1: 1 clk, 2: 15 clks
-			0xBC, 0x08, // Pre-charge voltage: Vcomh
-			0xBE, 0x07, // COM deselect voltage level: 0.86 x Vcc
+		0x81, 0x7F, // Set contrast to max.
+		0xB2, 0x51, // Set row period.
+		0xB1, 0x55, // Set phase len.
+		0xB4, 0x02, // Set charge comp.
+		0xB0, 0x28, // Charge comp. enable.
+		0xBE, 0x1C,
+		0xBF, 0x0D|0x02, // Set high voltage level of COM pin.
 
-			0xD5, 0x62, // Enable 2nd pre-charge
-			0xB6, 0x0F, // 2nd Pre-charge period: 15 clks
-		},
+		0xA4, // Normal display mode.
+		0xAF, // Display on.
 	)
 	if err != nil {
 		return err
@@ -154,14 +172,12 @@ func (s *SSD1325) Display(data []byte) error {
 	}
 
 	err := s.command(
-		[]byte{
-			0x15, // set column address
-			0x00, // set column start address
-			0x3f, // set column end address
-			0x75, // set row address
-			0x00, // set row start address
-			0x3f, // set row end address
-		},
+		0x15, // Set column address.
+		0x00, // Set column start address.
+		0x3f, // Set column end address.
+		0x75, // Set row address.
+		0x00, // Set row start address.
+		0x3f, // Set row end address.
 	)
 	if err != nil {
 		return err
