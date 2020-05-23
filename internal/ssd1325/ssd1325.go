@@ -36,7 +36,6 @@ func New(spiDevName, dcPinName, resetPinName string) (*SSD1325, error) {
 		return nil, err
 	}
 
-	// conn, err := port.Connect(4*physic.MegaHertz, spi.Mode0|spi.HalfDuplex, 8)
 	conn, err := port.Connect(4*physic.MegaHertz, spi.Mode0, 8)
 	if err != nil {
 		return nil, err
@@ -77,7 +76,7 @@ func (s *SSD1325) spiWrite(dcLevel gpio.Level, data []byte) error {
 	return err
 }
 
-func (s *SSD1325) data(data []byte) error {
+func (s *SSD1325) data(data ...byte) error {
 	return s.spiWrite(gpio.High, data)
 }
 
@@ -127,33 +126,29 @@ func (s *SSD1325) init() error {
 	time.Sleep(100 * time.Millisecond)
 
 	err = s.command(
-		0xAE,       // Display off.
-		0xB3, 0xF1, // Set clock divider.
-		0xA8, 0x3F, // Set multiplex ratio duty = 1/64
-		0xA2, 0x4C, // Set display offset.
-		0xA1, 0x00, // Set display start line.
-		0xAD, 0x02, // Master config.
-		0xA0, 0x56, // Segment remap.
+		displayOff,
+		setClock, 0xF1,
+		setMultiplex, 0x3F, // multiplex ratio duty = 1/64
+		setOffset, 0x4C,
+		setStartLine, 0x00,
+		masterConfig, 0x02,
+		setRemap, 0x56,
+		setCurrentFull,
+		setGrayTable, 0x01, 0x11, 0x22, 0x32, 0x43, 0x54, 0x65, 0x76,
+		setContrast, 0x7F, // max
+		setRowPeriod, 0x51,
+		setPhaseLen, 0x55,
+		setChargeComp, 0x02,
+		chargeCompEnable, 0x28,
+		setComLevel, 0x1C,
+		setVSL, 0x0D|0x02, // set high voltage level of COM pin.
+		normalDisplay,
+		gfxAccel, 0x01, // enable drawrect
 
-		0x84+0x2, // Set full current range.
-
-		0xB8, 0x01, 0x11, // Set greyscale table
-		0x22, 0x32, 0x43, // ...
-		0x54, 0x65, 0x76, // ...
-
-		0x81, 0x7F, // Set contrast to max.
-		0xB2, 0x51, // Set row period.
-		0xB1, 0x55, // Set phase len.
-		0xB4, 0x02, // Set charge comp.
-		0xB0, 0x28, // Charge comp. enable.
-		0xBE, 0x1C,
-		0xBF, 0x0D|0x02, // Set high voltage level of COM pin.
-
-		0xA4, // Normal display mode.
-		0xAF, // Display on.
+		displayOn,
 	)
 	if err != nil {
-		return err
+		return fmt.Errorf("Initialization sequence failed: %w", err)
 	}
 
 	log.Debugf("initialization done")
@@ -162,6 +157,7 @@ func (s *SSD1325) init() error {
 
 // Close closes the SPI port.
 func (s *SSD1325) Close() error {
+	s.reset()
 	return s.port.Close()
 }
 
@@ -172,23 +168,41 @@ func (s *SSD1325) Display(data []byte) error {
 	}
 
 	err := s.command(
-		0x15, // Set column address.
-		0x00, // Set column start address.
-		0x3f, // Set column end address.
-		0x75, // Set row address.
-		0x00, // Set row start address.
-		0x3f, // Set row end address.
+		setColAddr, 0x00, 0x3f,
+		setRowAddr, 0x00, 0x3f,
 	)
 	if err != nil {
 		return err
 	}
 
+	// TODO: Draw whole line at a time.
 	for row := 0; row < ScreenHeight; row++ {
-		rowStart := row * ScreenWidth
-		err = s.data(data[rowStart : rowStart+ScreenWidth])
-		if err != nil {
-			return err
+		// Pack each two pixels into a byte.
+		for col := 0; col < ScreenWidth/2; col += 2 {
+			// TODO: Check if this is correct order.
+			low := data[row*ScreenWidth+col] & 0x0F
+			high := data[row*ScreenWidth+col+1] & 0x0F
+			d := (high << 4) | low
+			err = s.data(d)
+			if err != nil {
+				return fmt.Errorf("Error writing pixel %dx%d: %w", row, col, err)
+			}
 		}
 	}
 	return nil
+}
+
+// DrawRect draws a rectangle on the screen.
+func (s *SSD1325) DrawRect(startRow, endRow, startCol, endCol uint, pattern byte) error {
+	if startRow >= ScreenHeight || endRow >= ScreenHeight || startRow > endRow {
+		return fmt.Errorf("invalid start/end row")
+	}
+	if startCol >= ScreenWidth || endCol >= ScreenWidth || startCol > endCol {
+		return fmt.Errorf("invalid start/end column")
+	}
+	log.Debugf("drawing a rectangle")
+	return s.command(
+		drawRect, byte(startRow), byte(endRow), byte(startCol), byte(endCol), pattern,
+	)
+
 }
