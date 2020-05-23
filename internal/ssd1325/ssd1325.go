@@ -151,6 +151,11 @@ func (s *SSD1325) init() error {
 		return fmt.Errorf("Initialization sequence failed: %w", err)
 	}
 
+	err = s.Clear()
+	if err != nil {
+		return err
+	}
+
 	log.Debugf("initialization done")
 	return nil
 }
@@ -178,7 +183,7 @@ func (s *SSD1325) Display(data []byte) error {
 	// TODO: Draw whole line at a time.
 	for row := 0; row < ScreenHeight; row++ {
 		// Pack each two pixels into a byte.
-		for col := 0; col < ScreenWidth/2; col += 2 {
+		for col := 0; col < ScreenWidth; col += 2 {
 			// TODO: Check if this is correct order.
 			low := data[row*ScreenWidth+col] & 0x0F
 			high := data[row*ScreenWidth+col+1] & 0x0F
@@ -193,7 +198,7 @@ func (s *SSD1325) Display(data []byte) error {
 }
 
 // DrawRect draws a rectangle on the screen.
-func (s *SSD1325) DrawRect(startRow, endRow, startCol, endCol uint, pattern byte) error {
+func (s *SSD1325) DrawRect(startCol, startRow, endCol, endRow uint, pattern byte) error {
 	if startRow >= ScreenHeight || endRow >= ScreenHeight || startRow > endRow {
 		return fmt.Errorf("invalid start/end row")
 	}
@@ -202,7 +207,13 @@ func (s *SSD1325) DrawRect(startRow, endRow, startCol, endCol uint, pattern byte
 	}
 	log.Debugf("drawing a rectangle")
 	return s.command(
-		drawRect, byte(startRow), byte(endRow), byte(startCol), byte(endCol), pattern,
+		drawRect, byte(startRow), byte(startCol), byte(endRow), byte(endCol), pattern,
 	)
 
+}
+
+// Clear clears the screen.
+func (s *SSD1325) Clear() error {
+	log.Debugf("clearing the screen")
+	return s.DrawRect(0, 0, ScreenWidth-1, ScreenHeight-1, 0x00)
 }
