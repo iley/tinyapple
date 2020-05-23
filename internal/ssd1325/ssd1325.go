@@ -44,12 +44,12 @@ func New(spiDevName, dcPinName, resetPinName string) (*SSD1325, error) {
 
 	dcPin := gpioreg.ByName(dcPinName)
 	if dcPin == nil {
-		return nil, fmt.Errorf("could not open GPIO %s", dcPin)
+		return nil, fmt.Errorf("could not open GPIO %s", dcPinName)
 	}
 
 	resetPin := gpioreg.ByName(resetPinName)
 	if resetPin == nil {
-		return nil, fmt.Errorf("could not open GPIO %s", resetPin)
+		return nil, fmt.Errorf("could not open GPIO %s", resetPinName)
 	}
 
 	s := &SSD1325{
