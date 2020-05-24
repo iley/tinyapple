@@ -20,6 +20,16 @@ const ScreenWidth = 128
 // ScreenHeight is the screen height in pixels
 const ScreenHeight = 64
 
+// maxTransfer is how many bytes we can transfer at a time.
+const maxTransfer = 1024
+const packedImageLen = ScreenHeight * ScreenWidth / 2
+
+func init() {
+	if packedImageLen%maxTransfer != 0 {
+		log.Fatalf("packedImageLen (%d) must be dividable by maxTransfer (%d)", packedImageLen, maxTransfer)
+	}
+}
+
 // SSD1325 provides support for displays based on SSD1325 chip.
 // Only SPI mode is supported.
 type SSD1325 struct {
@@ -76,7 +86,7 @@ func (s *SSD1325) spiWrite(dcLevel gpio.Level, data []byte) error {
 	return err
 }
 
-func (s *SSD1325) data(data ...byte) error {
+func (s *SSD1325) data(data []byte) error {
 	return s.spiWrite(gpio.High, data)
 }
 
@@ -123,7 +133,7 @@ func (s *SSD1325) init() error {
 	if err != nil {
 		return err
 	}
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(200 * time.Millisecond)
 
 	err = s.command(
 		displayOff,
@@ -166,10 +176,20 @@ func (s *SSD1325) Close() error {
 	return s.port.Close()
 }
 
-// Display a frame buffer on the screen.
-func (s *SSD1325) Display(data []byte) error {
-	if len(data) != ScreenWidth*ScreenHeight {
-		return fmt.Errorf("wrong size of buffer. expected %v", ScreenWidth*ScreenHeight)
+// DrawImage a frame buffer on the screen.
+func (s *SSD1325) DrawImage(data []byte) error {
+	packed, err := PackImage(data)
+	if err != nil {
+		return fmt.Errorf("could not pack image: %w", err)
+	}
+
+	return s.DrawImagePacked(packed)
+}
+
+// DrawImagePacked draws an image which was previosly processed by DrawImagePacked.
+func (s *SSD1325) DrawImagePacked(data []byte) error {
+	if len(data) != packedImageLen {
+		return fmt.Errorf("invalid packed data length %d, expected %d", len(data), packedImageLen)
 	}
 
 	err := s.command(
@@ -180,20 +200,14 @@ func (s *SSD1325) Display(data []byte) error {
 		return err
 	}
 
-	// TODO: Draw whole line at a time.
-	for x := 0; x < ScreenWidth; x += 2 {
-		for y := 0; y < ScreenHeight; y++ {
-			// Pack each two pixels into a byte.
-			// TODO: Check if this is correct order.
-			high := data[y*ScreenWidth+x] & 0x0F
-			low := data[y*ScreenWidth+x+1] & 0x0F
-			d := (high << 4) | low
-			err = s.data(d)
-			if err != nil {
-				return fmt.Errorf("Error writing pixel %dx%d: %w", x, y, err)
-			}
+	for offset := 0; offset < len(data); offset += maxTransfer {
+		slice := data[offset : offset+maxTransfer]
+		err = s.data(slice)
+		if err != nil {
+			return fmt.Errorf("cannot draw: %w", err)
 		}
 	}
+
 	return nil
 }
 
@@ -216,4 +230,27 @@ func (s *SSD1325) DrawRect(startCol, startRow, endCol, endRow uint, pattern byte
 func (s *SSD1325) Clear() error {
 	log.Debugf("clearing the screen")
 	return s.DrawRect(0, 0, ScreenWidth-1, ScreenHeight-1, 0x00)
+}
+
+// PackImage packs an image into SSD1325 specific format for drawing.
+func PackImage(data []byte) ([]byte, error) {
+	if len(data) != ScreenWidth*ScreenHeight {
+		return nil, fmt.Errorf("wrong size of buffer. expected %v", ScreenWidth*ScreenHeight)
+	}
+
+	packed := make([]byte, packedImageLen)
+
+	i := 0
+	// TODO: Draw whole line at a time.
+	for x := 0; x < ScreenWidth; x += 2 {
+		for y := 0; y < ScreenHeight; y++ {
+			// Pack each two pixels into a byte.
+			// TODO: Check if this is correct order.
+			high := data[y*ScreenWidth+x] & 0x0F
+			low := data[y*ScreenWidth+x+1] & 0x0F
+			packed[i] = (high << 4) | low
+			i++
+		}
+	}
+	return packed, nil
 }
