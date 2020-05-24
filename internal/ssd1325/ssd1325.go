@@ -181,16 +181,16 @@ func (s *SSD1325) Display(data []byte) error {
 	}
 
 	// TODO: Draw whole line at a time.
-	for row := 0; row < ScreenHeight; row++ {
-		// Pack each two pixels into a byte.
-		for col := 0; col < ScreenWidth; col += 2 {
+	for x := 0; x < ScreenWidth; x += 2 {
+		for y := 0; y < ScreenHeight; y++ {
+			// Pack each two pixels into a byte.
 			// TODO: Check if this is correct order.
-			low := data[row*ScreenWidth+col] & 0x0F
-			high := data[row*ScreenWidth+col+1] & 0x0F
+			high := data[y*ScreenWidth+x] & 0x0F
+			low := data[y*ScreenWidth+x+1] & 0x0F
 			d := (high << 4) | low
 			err = s.data(d)
 			if err != nil {
-				return fmt.Errorf("Error writing pixel %dx%d: %w", row, col, err)
+				return fmt.Errorf("Error writing pixel %dx%d: %w", x, y, err)
 			}
 		}
 	}

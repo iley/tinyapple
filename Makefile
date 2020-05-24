@@ -1,7 +1,12 @@
-demo: always
-	GOOS=linux GOARCH=mipsle go build -mod=vendor github.com/iley/tinyapple/cmd/demo
+MIPSBIN=demo check
+HOSTBIN=convert
 
-check: always
-	GOOS=linux GOARCH=mipsle go build -mod=vendor github.com/iley/tinyapple/cmd/check
+default: $(MIPSBIN) $(HOSTBIN)
 
-.PHONY: always
+$(MIPSBIN): %: always
+	GOOS=linux GOARCH=mipsle go build -mod=vendor github.com/iley/tinyapple/cmd/$@
+
+$(HOSTBIN): %: always
+	go build -mod=vendor github.com/iley/tinyapple/cmd/$@
+
+.PHONY: default always
