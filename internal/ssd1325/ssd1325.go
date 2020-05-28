@@ -1,9 +1,9 @@
 package ssd1325
 
-// Inspired by https://github.com/adafruit/Adafruit_SSD1325_Library
-
 import (
 	"fmt"
+	"image"
+	"image/color"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -13,6 +13,9 @@ import (
 	"periph.io/x/periph/conn/spi"
 	"periph.io/x/periph/conn/spi/spireg"
 )
+
+// Tones is the number of available grayscale tones.
+const Tones = 16
 
 // ScreenWidth is the screen width in pixels
 const ScreenWidth = 128
@@ -176,18 +179,18 @@ func (s *SSD1325) Close() error {
 	return s.port.Close()
 }
 
-// DrawImage a frame buffer on the screen.
-func (s *SSD1325) DrawImage(data []byte) error {
-	packed, err := PackImage(data)
+// DrawBuffer a frame buffer on the screen.
+func (s *SSD1325) DrawBuffer(data []byte) error {
+	packed, err := PackBuffer(data)
 	if err != nil {
 		return fmt.Errorf("could not pack image: %w", err)
 	}
 
-	return s.DrawImagePacked(packed)
+	return s.DrawBufferPacked(packed)
 }
 
-// DrawImagePacked draws an image which was previosly processed by DrawImagePacked.
-func (s *SSD1325) DrawImagePacked(data []byte) error {
+// DrawBufferPacked draws a buffer which was previosly processed by DrawBufferPacked.
+func (s *SSD1325) DrawBufferPacked(data []byte) error {
 	if len(data) != packedImageLen {
 		return fmt.Errorf("invalid packed data length %d, expected %d", len(data), packedImageLen)
 	}
@@ -232,8 +235,8 @@ func (s *SSD1325) Clear() error {
 	return s.DrawRect(0, 0, ScreenWidth-1, ScreenHeight-1, 0x00)
 }
 
-// PackImage packs an image into SSD1325 specific format for drawing.
-func PackImage(data []byte) ([]byte, error) {
+// PackBuffer packs grayscale buffer into SSD1325 specific format for drawing.
+func PackBuffer(data []byte) ([]byte, error) {
 	if len(data) != ScreenWidth*ScreenHeight {
 		return nil, fmt.Errorf("wrong size of buffer. expected %v", ScreenWidth*ScreenHeight)
 	}
@@ -241,11 +244,9 @@ func PackImage(data []byte) ([]byte, error) {
 	packed := make([]byte, packedImageLen)
 
 	i := 0
-	// TODO: Draw whole line at a time.
 	for x := 0; x < ScreenWidth; x += 2 {
 		for y := 0; y < ScreenHeight; y++ {
 			// Pack each two pixels into a byte.
-			// TODO: Check if this is correct order.
 			high := data[y*ScreenWidth+x] & 0x0F
 			low := data[y*ScreenWidth+x+1] & 0x0F
 			packed[i] = (high << 4) | low
@@ -253,4 +254,30 @@ func PackImage(data []byte) ([]byte, error) {
 		}
 	}
 	return packed, nil
+}
+
+// PackImage packs an image into SSD1325 specific format for drawing.
+func PackImage(img image.Image) ([]byte, error) {
+	bounds := img.Bounds()
+	if bounds.Max.X != ScreenWidth || bounds.Max.Y != ScreenHeight {
+		return nil, fmt.Errorf("invalid image size %dx%d, must be %dx%d", bounds.Max.X, bounds.Max.Y, ScreenWidth, ScreenHeight)
+	}
+
+	packed := make([]byte, packedImageLen)
+
+	i := 0
+	for x := 0; x < ScreenWidth; x += 2 {
+		for y := 0; y < ScreenHeight; y++ {
+			high := convertColor(img.At(x, y))
+			low := convertColor(img.At(x+1, y))
+			packed[i] = (high << 4) | low
+			i++
+		}
+	}
+	return packed, nil
+}
+
+func convertColor(col color.Color) byte {
+	r, g, b, _ := col.RGBA()
+	return byte((Tones - 1) * float64(r+g+b) / (0xffff * 3))
 }
