@@ -179,13 +179,21 @@ func (s *SSD1325) Close() error {
 	return s.port.Close()
 }
 
-// DrawBuffer a frame buffer on the screen.
+// DrawBuffer draws a frame buffer on the screen.
 func (s *SSD1325) DrawBuffer(data []byte) error {
 	packed, err := PackBuffer(data)
 	if err != nil {
+		return fmt.Errorf("could not pack buffer: %w", err)
+	}
+	return s.DrawBufferPacked(packed)
+}
+
+// DrawImage draws an image on the screen.
+func (s *SSD1325) DrawImage(img image.Image) error {
+	packed, err := PackImage(img)
+	if err != nil {
 		return fmt.Errorf("could not pack image: %w", err)
 	}
-
 	return s.DrawBufferPacked(packed)
 }
 
