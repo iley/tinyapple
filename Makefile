@@ -1,5 +1,5 @@
-MIPSBIN=demo check
-HOSTBIN=convert
+MIPSBIN=demo
+HOSTBIN=
 
 default: $(MIPSBIN) $(HOSTBIN)
 

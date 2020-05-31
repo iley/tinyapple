@@ -15,7 +15,7 @@ import (
 	"periph.io/x/periph/host"
 
 	"github.com/iley/tinyapple/internal/screen"
-	"github.com/iley/tinyapple/internal/ssd1325"
+	"github.com/iley/tinyapple/internal/screen/ssd1325"
 )
 
 func main() {
