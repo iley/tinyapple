@@ -173,32 +173,24 @@ func (s *SSD1325) init() error {
 	return nil
 }
 
+// Width returns the width of the screen.
+func (s *SSD1325) Width() int {
+	return ScreenWidth
+}
+
+// Height returns the height of the screen.
+func (s *SSD1325) Height() int {
+	return ScreenHeight
+}
+
 // Close closes the SPI port.
 func (s *SSD1325) Close() error {
 	s.reset()
 	return s.port.Close()
 }
 
-// DrawBuffer draws a frame buffer on the screen.
+// DrawBuffer draws a buffer which was previosly created by PackImage.
 func (s *SSD1325) DrawBuffer(data []byte) error {
-	packed, err := PackBuffer(data)
-	if err != nil {
-		return fmt.Errorf("could not pack buffer: %w", err)
-	}
-	return s.DrawBufferPacked(packed)
-}
-
-// DrawImage draws an image on the screen.
-func (s *SSD1325) DrawImage(img image.Image) error {
-	packed, err := PackImage(img)
-	if err != nil {
-		return fmt.Errorf("could not pack image: %w", err)
-	}
-	return s.DrawBufferPacked(packed)
-}
-
-// DrawBufferPacked draws a buffer which was previosly processed by DrawBufferPacked.
-func (s *SSD1325) DrawBufferPacked(data []byte) error {
 	if len(data) != packedImageLen {
 		return fmt.Errorf("invalid packed data length %d, expected %d", len(data), packedImageLen)
 	}
@@ -222,50 +214,14 @@ func (s *SSD1325) DrawBufferPacked(data []byte) error {
 	return nil
 }
 
-// DrawRect draws a rectangle on the screen.
-func (s *SSD1325) DrawRect(startCol, startRow, endCol, endRow uint, pattern byte) error {
-	if startRow >= ScreenHeight || endRow >= ScreenHeight || startRow > endRow {
-		return fmt.Errorf("invalid start/end row")
-	}
-	if startCol >= ScreenWidth || endCol >= ScreenWidth || startCol > endCol {
-		return fmt.Errorf("invalid start/end column")
-	}
-	log.Debugf("drawing a rectangle")
-	return s.command(
-		drawRect, byte(startRow), byte(startCol), byte(endRow), byte(endCol), pattern,
-	)
-
-}
-
 // Clear clears the screen.
 func (s *SSD1325) Clear() error {
 	log.Debugf("clearing the screen")
 	return s.DrawRect(0, 0, ScreenWidth-1, ScreenHeight-1, 0x00)
 }
 
-// PackBuffer packs grayscale buffer into SSD1325 specific format for drawing.
-func PackBuffer(data []byte) ([]byte, error) {
-	if len(data) != ScreenWidth*ScreenHeight {
-		return nil, fmt.Errorf("wrong size of buffer. expected %v", ScreenWidth*ScreenHeight)
-	}
-
-	packed := make([]byte, packedImageLen)
-
-	i := 0
-	for x := 0; x < ScreenWidth; x += 2 {
-		for y := 0; y < ScreenHeight; y++ {
-			// Pack each two pixels into a byte.
-			high := data[y*ScreenWidth+x] & 0x0F
-			low := data[y*ScreenWidth+x+1] & 0x0F
-			packed[i] = (high << 4) | low
-			i++
-		}
-	}
-	return packed, nil
-}
-
 // PackImage packs an image into SSD1325 specific format for drawing.
-func PackImage(img image.Image) ([]byte, error) {
+func (s *SSD1325) PackImage(img image.Image) ([]byte, error) {
 	bounds := img.Bounds()
 	if bounds.Max.X != ScreenWidth || bounds.Max.Y != ScreenHeight {
 		return nil, fmt.Errorf("invalid image size %dx%d, must be %dx%d", bounds.Max.X, bounds.Max.Y, ScreenWidth, ScreenHeight)
@@ -283,6 +239,20 @@ func PackImage(img image.Image) ([]byte, error) {
 		}
 	}
 	return packed, nil
+}
+
+// DrawRect draws a rectangle on the screen.
+func (s *SSD1325) DrawRect(startCol, startRow, endCol, endRow uint, pattern byte) error {
+	if startRow >= ScreenHeight || endRow >= ScreenHeight || startRow > endRow {
+		return fmt.Errorf("invalid start/end row")
+	}
+	if startCol >= ScreenWidth || endCol >= ScreenWidth || startCol > endCol {
+		return fmt.Errorf("invalid start/end column")
+	}
+	log.Debugf("drawing a rectangle")
+	return s.command(
+		drawRect, byte(startRow), byte(startCol), byte(endRow), byte(endCol), pattern,
+	)
 }
 
 func convertColor(col color.Color) byte {

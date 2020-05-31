@@ -11,10 +11,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/fogleman/gg"
 	log "github.com/sirupsen/logrus"
 	"periph.io/x/periph/host"
 
+	"github.com/iley/tinyapple/internal/screen"
 	"github.com/iley/tinyapple/internal/ssd1325"
 )
 
@@ -46,6 +46,7 @@ func main() {
 	}
 
 	log.Debugf("initializing display...")
+	var scr screen.Interface
 	scr, err := ssd1325.New(*spiDev, *dcPin, *rstPin)
 	if err != nil {
 		log.Fatalf("could not initialize screen: %v", err)
@@ -55,18 +56,6 @@ func main() {
 
 	log.Debugf("starting demo...")
 
-	log.Debugf("circle")
-	dc := gg.NewContext(ssd1325.ScreenWidth, ssd1325.ScreenHeight)
-	dc.DrawCircle(ssd1325.ScreenWidth/2, ssd1325.ScreenHeight/2, ssd1325.ScreenHeight/2)
-	dc.SetRGB(1, 1, 1)
-	dc.Stroke()
-	img := dc.Image()
-	err = scr.DrawImage(img)
-	if err != nil {
-		log.Fatalf("could not draw image: %v", err)
-	}
-	time.Sleep(5 * time.Second)
-
 	log.Debugf("animation")
 	packedFrames := make([][]byte, len(frames))
 	for i := range frames {
@@ -75,7 +64,7 @@ func main() {
 		if err != nil {
 			log.Errorf("could not decode PNG: %v", err)
 		}
-		packedFrames[i], err = ssd1325.PackImage(img)
+		packedFrames[i], err = scr.PackImage(img)
 		if err != nil {
 			log.Fatalf("cannot pack frame: %v", err)
 		}
@@ -90,7 +79,7 @@ mainloop:
 		default:
 		}
 		for _, frame := range packedFrames {
-			err = scr.DrawBufferPacked(frame)
+			err = scr.DrawBuffer(frame)
 			if err != nil {
 				log.Fatalf("cannot draw frame: %v", err)
 			}
