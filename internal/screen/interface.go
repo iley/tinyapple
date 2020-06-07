@@ -19,7 +19,7 @@ type Interface interface {
 
 // DrawImage is a utility function for drawing an unpacked image.
 func DrawImage(scr Interface, img image.Image) error {
-	log.Infof("drawing an image...")
+	log.Debugf("drawing an image...")
 	buf, err := scr.PackImage(img)
 	if err != nil {
 		return fmt.Errorf("could not pack image: %w", err)

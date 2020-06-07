@@ -16,6 +16,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/nfnt/resize"
 	log "github.com/sirupsen/logrus"
 	tb "gopkg.in/tucnak/telebot.v2"
 	"periph.io/x/periph/host"
@@ -155,11 +156,20 @@ func handleImageFile(bot *tb.Bot, msg *tb.Message, file *tb.File, scr screen.Int
 		bot.Send(msg.Sender, fmt.Sprintf("Could not fetch image: %v", err))
 		return
 	}
-	// TODO: Crop/extend image to the right size.
-	if img.Bounds().Max.X != scr.Width() || img.Bounds().Max.Y != scr.Height() {
-		bot.Send(msg.Sender, fmt.Sprintf("Invalid image size. Must be %dx%d", scr.Width(), scr.Height()))
-		return
+
+	// Scale down the image if it's larger than the screen.
+	if imgWidth(img) > scr.Width() || imgHeight(img) > scr.Height() {
+		log.Debugf("resizing image from %dx%d to %dx%d", imgWidth(img), imgHeight(img), scr.Width(), scr.Height())
+		img = resize.Thumbnail(uint(scr.Width()), uint(scr.Height()), img, resize.Lanczos3)
 	}
+
+	// Surround image with black pixels if it's smaller than the screen.
+	// This might also be caused by resizing above.
+	if imgWidth(img) < scr.Width() || imgHeight(img) < scr.Height() {
+		log.Debugf("extending image from %dx%d to %dx%d", imgWidth(img), imgHeight(img), scr.Width(), scr.Height())
+		img = extendImage(img, scr.Width(), scr.Height())
+	}
+
 	err = screen.DrawImage(scr, img)
 	if err != nil {
 		log.Errorf("could not draw image: %v", err)
@@ -186,6 +196,7 @@ func fetchFile(bot *tb.Bot, file *tb.File) ([]byte, error) {
 }
 
 func fetchImage(bot *tb.Bot, file *tb.File) (image.Image, error) {
+	log.Debugf("downloading an image...")
 	data, err := fetchFile(bot, file)
 	if err != nil {
 		return nil, err
@@ -202,4 +213,25 @@ func fetchImage(bot *tb.Bot, file *tb.File) (image.Image, error) {
 	} else {
 		return nil, fmt.Errorf("Unsupported image type: %s. Only PNG and JPEG are supported", contentType)
 	}
+}
+
+// extendImage extends a small image into a fixed size by adding black pixels around
+func extendImage(img image.Image, width, height int) image.Image {
+	res := image.NewRGBA(image.Rect(0, 0, width, height))
+	offsetX := (width - imgWidth(img)) / 2
+	offsetY := (height - imgHeight(img)) / 2
+	for y := 0; y < imgHeight(img); y++ {
+		for x := 0; x < imgWidth(img); x++ {
+			res.Set(offsetX+x, offsetY+y, img.At(x, y))
+		}
+	}
+	return res
+}
+
+func imgWidth(img image.Image) int {
+	return img.Bounds().Max.X
+}
+
+func imgHeight(img image.Image) int {
+	return img.Bounds().Max.Y
 }
