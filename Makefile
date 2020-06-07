@@ -1,4 +1,4 @@
-MIPSBIN=demo
+MIPSBIN=demo bot
 HOSTBIN=
 
 default: $(MIPSBIN) $(HOSTBIN)
