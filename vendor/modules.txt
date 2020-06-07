@@ -1,16 +1,15 @@
-# github.com/go-telegram-bot-api/telegram-bot-api v4.6.4+incompatible
-## explicit
-github.com/go-telegram-bot-api/telegram-bot-api
 # github.com/konsorten/go-windows-terminal-sequences v1.0.3
 github.com/konsorten/go-windows-terminal-sequences
+# github.com/pkg/errors v0.8.1
+github.com/pkg/errors
 # github.com/sirupsen/logrus v1.6.0
 ## explicit
 github.com/sirupsen/logrus
-# github.com/technoweenie/multipartstreamer v1.0.1
-## explicit
-github.com/technoweenie/multipartstreamer
 # golang.org/x/sys v0.0.0-20190422165155-953cdadca894
 golang.org/x/sys/unix
+# gopkg.in/tucnak/telebot.v2 v2.0.0-20200522115256-76430783a7a2
+## explicit
+gopkg.in/tucnak/telebot.v2
 # periph.io/x/periph v3.6.2+incompatible
 ## explicit
 periph.io/x/periph

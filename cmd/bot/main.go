@@ -3,10 +3,14 @@ package main
 import (
 	"flag"
 	"image/color"
+	"os"
+	"os/signal"
 	"strings"
+	"syscall"
+	"time"
 
-	tg "github.com/go-telegram-bot-api/telegram-bot-api"
 	log "github.com/sirupsen/logrus"
+	tb "gopkg.in/tucnak/telebot.v2"
 	"periph.io/x/periph/host"
 	"tinygo.org/x/tinyfont"
 
@@ -50,58 +54,38 @@ func main() {
 	}
 
 	log.Debugf("initializing display...")
-	var scr screen.Interface
 	scr, err := ssd1325.New(*spiDev, *dcPin, *rstPin)
 	if err != nil {
 		log.Fatalf("could not initialize screen: %v", err)
 	}
 
-	bot, err := tg.NewBotAPI(*token)
+	bot, err := tb.NewBot(tb.Settings{
+		Token:  *token,
+		Poller: &tb.LongPoller{Timeout: 10 * time.Second},
+	})
 	if err != nil {
 		log.Fatal(err)
 	}
-	bot.Debug = *debug
 
-	log.Debugf("Authorized on account %s", bot.Self.UserName)
-
-	upd := tg.NewUpdate(0)
-	upd.Timeout = 60
-
-	updChan, err := bot.GetUpdatesChan(upd)
-
-	for u := range updChan {
-		username := u.Message.From.UserName
-
-		if !userMap[username] {
-			log.Warnf("unauthorized user: %s", username)
-			msg := tg.NewMessage(u.Message.Chat.ID, "I don't know you. Go away!")
-			bot.Send(msg)
-			continue
+	bot.Handle(tb.OnText, func(msg *tb.Message) {
+		if !userMap[msg.Sender.Username] {
+			log.Warnf("unauthorized user: %s", msg.Sender.Username)
+			bot.Send(msg.Sender, "I don't know you. Go away!")
+			return
 		}
+		handleTextMessage(bot, msg, scr)
+	})
 
-		if u.Message == nil { // ignore any non-Message Updates
-			continue
-		}
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+		<-sigs
+		log.Infof("exiting...")
+		// Gracefully shutdown.
+		bot.Stop()
+	}()
 
-		if u.Message.Text != "" {
-			log.Debugf("Text message from %s: %s", username, u.Message.Text)
-			scr.Clear()
-
-			disp := screen.NewDisplayer(scr)
-			tinyfont.WriteLine(disp, &tinyfont.Org01, 0, 5, []byte(u.Message.Text), white)
-			err = disp.Display()
-			if err != nil {
-				log.Fatalf("display error: %v", err)
-			}
-
-			msg := tg.NewMessage(u.Message.Chat.ID, "Message delivered")
-			bot.Send(msg)
-		}
-
-		if u.Message.Photo != nil {
-			log.Debugf("Photo message from %s", u.Message.From.UserName)
-		}
-	}
+	bot.Start()
 }
 
 func parseList(str string) []string {
@@ -113,4 +97,15 @@ func parseList(str string) []string {
 		}
 	}
 	return res
+}
+
+func handleTextMessage(bot *tb.Bot, msg *tb.Message, scr screen.Interface) {
+	disp := screen.NewDisplayer(scr)
+	tinyfont.WriteLine(disp, &tinyfont.Org01, 0, 5, []byte(msg.Text), white)
+	err := disp.Display()
+	if err != nil {
+		log.Fatalf("display error: %v", err)
+	}
+
+	bot.Send(msg.Sender, "Message delivered")
 }
