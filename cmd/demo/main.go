@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/base64"
 	"flag"
+	"image/color"
 	"image/png"
 	"math/rand"
 	"os"
@@ -13,6 +14,8 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"periph.io/x/periph/host"
+	"tinygo.org/x/tinyfont"
+	"tinygo.org/x/tinyfont/freesans"
 
 	"github.com/iley/tinyapple/internal/screen"
 	"github.com/iley/tinyapple/internal/screen/ssd1325"
@@ -55,6 +58,17 @@ func main() {
 	defer scr.Close()
 
 	log.Debugf("starting demo...")
+
+	log.Debugf("text")
+	disp := screen.NewDisplayer(scr)
+	white := color.RGBA{0xff, 0xff, 0xff, 255}
+	tinyfont.WriteLine(disp, &freesans.Regular12pt7b, 0, 20, []byte("Hello world!"), white)
+
+	err = disp.Display()
+	if err != nil {
+		log.Fatalf("display error: %v", err)
+	}
+	time.Sleep(10 * time.Second)
 
 	log.Debugf("animation")
 	packedFrames := make([][]byte, len(frames))

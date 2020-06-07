@@ -249,7 +249,6 @@ func (s *SSD1325) DrawRect(startCol, startRow, endCol, endRow uint, pattern byte
 	if startCol >= ScreenWidth || endCol >= ScreenWidth || startCol > endCol {
 		return fmt.Errorf("invalid start/end column")
 	}
-	log.Debugf("drawing a rectangle")
 	return s.command(
 		drawRect, byte(startRow), byte(startCol), byte(endRow), byte(endCol), pattern,
 	)
