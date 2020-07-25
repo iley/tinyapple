@@ -124,7 +124,7 @@ func authorize(bot *tb.Bot, users []string, handler func(*tb.Message)) func(*tb.
 
 func handleText(bot *tb.Bot, msg *tb.Message, scr screen.Interface) {
 	disp := screen.NewDisplayer(scr)
-	tinyfont.WriteLine(disp, &tinyfont.Org01, 0, 5, []byte(msg.Text), white)
+	tinyfont.WriteLine(disp, &tinyfont.Org01, 0, 5, msg.Text, white)
 	err := disp.Display()
 	if err != nil {
 		log.Fatalf("display error: %v", err)

@@ -47,7 +47,7 @@ periph.io/x/periph/host/videocore
 # tinygo.org/x/drivers v0.12.0
 ## explicit
 tinygo.org/x/drivers
-# tinygo.org/x/tinyfont v0.0.0-20200321102526-a02e4495f8d6
+# tinygo.org/x/tinyfont v0.0.0-20200621180209-0d78ed62e643
 ## explicit
 tinygo.org/x/tinyfont
 tinygo.org/x/tinyfont/freesans

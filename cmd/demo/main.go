@@ -62,7 +62,7 @@ func main() {
 	log.Debugf("text")
 	disp := screen.NewDisplayer(scr)
 	white := color.RGBA{0xff, 0xff, 0xff, 255}
-	tinyfont.WriteLine(disp, &freesans.Regular12pt7b, 0, 20, []byte("Hello world!"), white)
+	tinyfont.WriteLine(disp, &freesans.Regular12pt7b, 0, 20, "Hello world!", white)
 
 	err = disp.Display()
 	if err != nil {
