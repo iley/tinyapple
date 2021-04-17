@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
 	"strconv"
 
 	"github.com/pkg/errors"
@@ -56,10 +57,22 @@ func extractOk(data []byte) error {
 
 	desc := match[2]
 	err := ErrByDescription(desc)
+
 	if err == nil {
 		code, _ := strconv.Atoi(match[1])
-		err = fmt.Errorf("telegram unknown: %s (%d)", desc, code)
+
+		switch code {
+		case http.StatusTooManyRequests:
+			retry, _ := strconv.Atoi(match[3])
+			err = FloodError{
+				APIError:   NewAPIError(429, desc),
+				RetryAfter: retry,
+			}
+		default:
+			err = fmt.Errorf("telegram unknown: %s (%d)", desc, code)
+		}
 	}
+
 	return err
 }
 
@@ -70,6 +83,15 @@ func extractMessage(data []byte) (*Message, error) {
 		Result *Message
 	}
 	if err := json.Unmarshal(data, &resp); err != nil {
+		var resp struct {
+			Result bool
+		}
+		if err := json.Unmarshal(data, &resp); err != nil {
+			return nil, wrapError(err)
+		}
+		if resp.Result {
+			return nil, ErrTrueResult
+		}
 		return nil, wrapError(err)
 	}
 	return resp.Result, nil
@@ -123,7 +145,11 @@ func extractOptions(how []interface{}) *SendOptions {
 	return opts
 }
 
-func embedSendOptions(params map[string]string, opt *SendOptions) {
+func (b *Bot) embedSendOptions(params map[string]string, opt *SendOptions) {
+	if b.parseMode != ModeDefault {
+		params["parse_mode"] = b.parseMode
+	}
+
 	if opt == nil {
 		return
 	}
@@ -172,7 +198,7 @@ func processButtons(keys [][]InlineButton) {
 	}
 }
 
-func embedRights(p map[string]string, rights Rights) {
+func embedRights(p map[string]interface{}, rights Rights) {
 	data, _ := json.Marshal(rights)
 	_ = json.Unmarshal(data, &p)
 }

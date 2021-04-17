@@ -1,3 +1,88 @@
+0.15.0
+---
+- **new devices**
+    - dht: add DHTXX thermometer
+    - mcp23017: new driver for MCP23017 (I2C port expander)
+    - bmp388: Add bmp388 support (#219)
+- **enhancements**
+    - hd44780: add a mode to work with boards where the RW pin is grounded
+    - st7789: add scrolling functions to match st7735
+    - microbitmatrix: matrix now working on microbit v2
+    - ds1307: Better interface "ReadTime" instead of "Time"
+    - ws2812: make AVR support more robust
+- **bugfixes**
+    - all: fix main package in examples
+- **core**
+    - adc: update all drivers with ADC to use new config struct
+    - spi: remove machine.SPI and replace with drivers.SPI interface for almost all SPI drivers
+- **testing**
+    - test: run unit tests against i2c drivers and any spi drivers without direct gpio
+- **docs**
+    - st7789: correct errors on various godoc comments
+
+0.14.0
+---
+- **new devices**
+    - lis2mdl: add LIS2MDL magnetometer (#187)
+    - waveshare: add Waveshare 4.2in B/W e-paper driver (#183)
+- **enhancements**
+    - adt7410: add connection test and for that matter connection method
+    - gps
+        - add speed and heading to fix, as parsed from RMC NMEA sentence
+        - improvements and bugfixes (#186)
+    - ili9341
+        - add support for setting framerate, vsync pause, and reading scanline data.
+        - renamed NewSpi() to NewSPI() in accordance with Go naming conventions
+    - ws2812
+        - add support for ESP8266
+        - add support for ESP32
+- **bugfixes**
+    - ili9341
+        - rix setWindow bug, add CS pin for Clue compatibility. (#180)
+        - bugfix for RAMWR bug
+    - lis2mdl: turn on read mode on every read, to ensure that magnetometer data is updated
+- **core**
+    - i2c
+        - switch all i2c drivers definitions to use i2c bus interface type instead of machine package concrete type
+        - correct interface definition for I2C Tx function
+- **testing**
+    - fix smoke-test unless avr-gcc installed
+    - add very basic mock structs for testing i2c devices, based on work done by @rogpeppe
+    - improve API surface and implement one more test function in lis2mdl driver
+- **docs**
+    - replace README badge for godocs with pkgdocs
+
+0.13.0
+---
+- **new devices**
+    - bmi160: add initial support
+    - bmp280: added support for the Bosch BMP280 temperature and pressure sensor. (#158)
+    - lsm303agr: add lsm303agr (#162)
+    - ssd1351: add SSD1351 OLED display driver (#146)
+- **enhancements**
+    - hd44780: add Hd44780i2c driver (#173)
+    - ili9341
+        - add ILI9341 TFT driver (SPI) for ATSAMD2x (#174)
+        - cache address window to prevent sending unnecessary commands (#171)
+        - ILI9341 TFT driver (SPI) (#153)
+        - improve performance of ILI9341 on ATSAMD5X
+    - ST77xx: fix DrawFastHLine for ST77xx, SSD1331 and SSD1351 DrawFastHLine uses FillRectangle(x,y,width,height,c), so height must be 1 to draw a horizontal line
+    - tmp102: add Connected func to check for device
+    - wifinina: added UDP support
+    - ws2812: update ws2812_avr_16m.go
+- **bugfixes**
+    - apa102: avoid creating garbage
+    - bmp180: fix temperature type conversion
+- **core**
+    - all
+        - added custom import path (#161)
+        - changeover to eliminate all direct use of master/slave terminology
+    - build: try vendor in working directory to match expected module path
+    - ci: support Go modules
+    - modules: update go version and dependency
+- **docs**
+    - docs: reorder to correct alpha and adjust count of supported drivers
+
 0.12.0
 ---
 - **new devices**

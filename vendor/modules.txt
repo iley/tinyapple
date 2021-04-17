@@ -1,19 +1,23 @@
 # github.com/konsorten/go-windows-terminal-sequences v1.0.3
-github.com/konsorten/go-windows-terminal-sequences
+## explicit
 # github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 ## explicit
 github.com/nfnt/resize
-# github.com/pkg/errors v0.8.1
+# github.com/pkg/errors v0.9.1
+## explicit
 github.com/pkg/errors
-# github.com/sirupsen/logrus v1.6.0
+# github.com/sirupsen/logrus v1.8.1
 ## explicit
 github.com/sirupsen/logrus
-# golang.org/x/sys v0.0.0-20190422165155-953cdadca894
+# golang.org/x/sys v0.0.0-20210415045647-66c3f260301c
+## explicit
+golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
-# gopkg.in/tucnak/telebot.v2 v2.0.0-20200522115256-76430783a7a2
+golang.org/x/sys/windows
+# gopkg.in/tucnak/telebot.v2 v2.3.5
 ## explicit
 gopkg.in/tucnak/telebot.v2
-# periph.io/x/periph v3.6.2+incompatible
+# periph.io/x/periph v3.6.7+incompatible
 ## explicit
 periph.io/x/periph
 periph.io/x/periph/conn
@@ -44,10 +48,10 @@ periph.io/x/periph/host/pmem
 periph.io/x/periph/host/rpi
 periph.io/x/periph/host/sysfs
 periph.io/x/periph/host/videocore
-# tinygo.org/x/drivers v0.12.0
+# tinygo.org/x/drivers v0.15.1
 ## explicit
 tinygo.org/x/drivers
-# tinygo.org/x/tinyfont v0.0.0-20200621180209-0d78ed62e643
+# tinygo.org/x/tinyfont v0.2.1
 ## explicit
 tinygo.org/x/tinyfont
 tinygo.org/x/tinyfont/freesans
