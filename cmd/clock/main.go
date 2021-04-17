@@ -13,15 +13,15 @@ import (
 	"periph.io/x/periph/host"
 	"tinygo.org/x/tinydraw"
 	"tinygo.org/x/tinyfont"
-	"tinygo.org/x/tinyfont/freemono"
 	"tinygo.org/x/tinyfont/proggy"
 
+	"github.com/iley/tinyapple/internal/fonts"
 	"github.com/iley/tinyapple/internal/screen"
 	"github.com/iley/tinyapple/internal/screen/ssd1325"
 )
 
 var (
-	timeFont = &freemono.Bold18pt7b
+	timeFont = &fonts.Digits
 	dateFont = &proggy.TinySZ8pt7b
 )
 

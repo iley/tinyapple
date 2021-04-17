@@ -17,4 +17,7 @@ deploy: clock
 	scp clock $(SSH_HOST):/mnt/mmcblk0
 	ssh $(SSH_HOST) /etc/init.d/clock start
 
+internal/fonts/digits.go: digits.bdf
+	tinyfontgen --package fonts --fontname Digits $^ --output $@ --all --verbose
+
 .PHONY: default always deploy

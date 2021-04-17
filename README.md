@@ -2,8 +2,7 @@
 
 Tiny Apple is a small internet-connected display which looks like a classic Mac.
 
-## Building
+To edit the digits use a bitmap font editor (e.g. [gbdfed](http://sofia.nmsu.edu/~mleisher/Software/gbdfed/))
+and update the generated go file by running
 
-To build for Onion Omega target run:
-
-    GOOS=linux GOARCH=mipsle go build -mod=vendor github.com/iley/tinyapple/cmd/demo
+    make internal/fonts/digits.go
