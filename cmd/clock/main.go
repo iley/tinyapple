@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+	_ "time/tzdata"
 
 	log "github.com/sirupsen/logrus"
 	"periph.io/x/periph/host"
@@ -26,6 +27,7 @@ var (
 )
 
 func main() {
+	timezone := flag.String("tz", "Europe/Berlin", "timezone to show time in")
 	spiDev := flag.String("spi", "/dev/spidev0.1", "path to the SPI device")
 	dcPin := flag.String("dc", "GPIO1", "name of the D/C GPIO pin")
 	rstPin := flag.String("reset", "GPIO0", "name of the reset GPIO pin")
@@ -45,16 +47,21 @@ func main() {
 		done <- true
 	}()
 
+	location, err := time.LoadLocation(*timezone)
+	if err != nil {
+		log.Fatalf("timezone loading error: %s", err)
+	}
+
 	log.Debugf("initializing host...")
 	if _, err := host.Init(); err != nil {
-		log.Fatalf("host initialization error: %v", err)
+		log.Fatalf("host initialization error: %s", err)
 	}
 
 	log.Debugf("initializing display...")
 	var scr screen.Interface
-	scr, err := ssd1325.New(*spiDev, *dcPin, *rstPin)
+	scr, err = ssd1325.New(*spiDev, *dcPin, *rstPin)
 	if err != nil {
-		log.Fatalf("could not initialize screen: %v", err)
+		log.Fatalf("could not initialize screen: %s", err)
 	}
 
 	defer scr.Close()
@@ -67,7 +74,7 @@ func main() {
 	scrHeight := int16(scr.Height())
 
 	for {
-		now := time.Now()
+		now := time.Now().In(location)
 
 		tinydraw.FilledRectangle(disp, 0, 0, scrWidth-1, scrHeight-1, black)
 
@@ -80,7 +87,7 @@ func main() {
 		err = disp.Display()
 
 		if err != nil {
-			log.Fatalf("display error: %v", err)
+			log.Fatalf("display error: %s", err)
 		}
 
 		time.Sleep(100 * time.Millisecond)
