@@ -9,8 +9,9 @@ import (
 
 // Displayer implements the Displayer interfaces from TinyGo.
 type Displayer struct {
-	scr   Interface
-	frame *image.RGBA
+	scr       Interface
+	frame     *image.RGBA
+	prevFrame *image.RGBA
 }
 
 var _ drivers.Displayer = (*Displayer)(nil)
@@ -18,8 +19,9 @@ var _ drivers.Displayer = (*Displayer)(nil)
 // NewDisplayer creates a new instance of Displayer.
 func NewDisplayer(scr Interface) *Displayer {
 	return &Displayer{
-		scr:   scr,
-		frame: image.NewRGBA(image.Rect(0, 0, scr.Width(), scr.Height())),
+		scr:       scr,
+		frame:     image.NewRGBA(image.Rect(0, 0, scr.Width(), scr.Height())),
+		prevFrame: image.NewRGBA(image.Rect(0, 0, scr.Width(), scr.Height())),
 	}
 }
 
@@ -35,5 +37,20 @@ func (d *Displayer) SetPixel(x, y int16, c color.RGBA) {
 
 // Display sends the in-memory buffer to the screen.
 func (d *Displayer) Display() error {
-	return DrawImage(d.scr, d.frame)
+	if imagesEqual(d.prevFrame, d.frame) {
+		return nil
+	}
+	err := DrawImage(d.scr, d.frame)
+	copy(d.prevFrame.Pix, d.frame.Pix)
+	return err
+}
+
+func imagesEqual(first, second *image.RGBA) bool {
+	// We assume size is always the same.
+	for i := range first.Pix {
+		if first.Pix[i] != second.Pix[i] {
+			return false
+		}
+	}
+	return true
 }

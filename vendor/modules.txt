@@ -1,5 +1,3 @@
-# github.com/konsorten/go-windows-terminal-sequences v1.0.3
-## explicit
 # github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 ## explicit
 github.com/nfnt/resize
@@ -51,7 +49,12 @@ periph.io/x/periph/host/videocore
 # tinygo.org/x/drivers v0.15.1
 ## explicit
 tinygo.org/x/drivers
+# tinygo.org/x/tinydraw v0.0.0-20200416172542-c30d6d84353c
+## explicit
+tinygo.org/x/tinydraw
 # tinygo.org/x/tinyfont v0.2.1
 ## explicit
 tinygo.org/x/tinyfont
+tinygo.org/x/tinyfont/freemono
 tinygo.org/x/tinyfont/freesans
+tinygo.org/x/tinyfont/proggy

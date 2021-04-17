@@ -1,5 +1,7 @@
-MIPSBIN=demo bot
+MIPSBIN=demo bot clock
 HOSTBIN=
+
+SSH_HOST=root@omega-8d52
 
 default: $(MIPSBIN) $(HOSTBIN)
 
@@ -9,4 +11,10 @@ $(MIPSBIN): %: always
 $(HOSTBIN): %: always
 	go build -mod=vendor github.com/iley/tinyapple/cmd/$@
 
-.PHONY: default always
+deploy: clock
+	ssh $(SSH_HOST) /etc/init.d/clock stop
+	sleep 5
+	scp clock $(SSH_HOST):/mnt/mmcblk0
+	ssh $(SSH_HOST) /etc/init.d/clock start
+
+.PHONY: default always deploy
