@@ -90,7 +90,7 @@ func main() {
 		tinydraw.FilledRectangle(disp, 0, 0, scrWidth-1, scrHeight-1, black)
 
 		timeStr := getTimeStr(now)
-		tinyfont.WriteLine(disp, timeFont, 10, 32, timeStr, white)
+		tinyfont.WriteLine(disp, timeFont, 15, 32, timeStr, white)
 
 		dateStr := getDateStr(now)
 		tinyfont.WriteLine(disp, dateFont, 15, 54, dateStr, white)
