@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"image/color"
@@ -19,6 +20,7 @@ import (
 	"github.com/iley/tinyapple/internal/fonts"
 	"github.com/iley/tinyapple/internal/screen"
 	"github.com/iley/tinyapple/internal/screen/ssd1325"
+	"github.com/iley/tinyapple/internal/weather"
 )
 
 var (
@@ -28,11 +30,18 @@ var (
 
 func main() {
 	timezone := flag.String("tz", "Europe/Berlin", "timezone to show time in")
+	location := flag.String("location", "Munich, DE", "location for weather lookup")
+	owmKey := flag.String("owm", "", "OpenWeatherMap API key")
 	spiDev := flag.String("spi", "/dev/spidev0.1", "path to the SPI device")
 	dcPin := flag.String("dc", "GPIO1", "name of the D/C GPIO pin")
 	rstPin := flag.String("reset", "GPIO0", "name of the reset GPIO pin")
 	debug := flag.Bool("debug", false, "enable debug logging")
 	flag.Parse()
+
+	// TODO: Make the weather feature optional.
+	if *owmKey == "" {
+		log.Fatalf("Please specify OpenWeatherMap API key via --owm")
+	}
 
 	if *debug {
 		log.SetLevel(log.DebugLevel)
@@ -47,10 +56,12 @@ func main() {
 		done <- true
 	}()
 
-	location, err := time.LoadLocation(*timezone)
+	tzLocation, err := time.LoadLocation(*timezone)
 	if err != nil {
 		log.Fatalf("timezone loading error: %s", err)
 	}
+
+	weatherProvider := weather.NewOpenWeatherMapProvider(context.Background(), *owmKey, *location)
 
 	log.Debugf("initializing host...")
 	if _, err := host.Init(); err != nil {
@@ -74,7 +85,7 @@ func main() {
 	scrHeight := int16(scr.Height())
 
 	for {
-		now := time.Now().In(location)
+		now := time.Now().In(tzLocation)
 
 		tinydraw.FilledRectangle(disp, 0, 0, scrWidth-1, scrHeight-1, black)
 
@@ -82,7 +93,10 @@ func main() {
 		tinyfont.WriteLine(disp, timeFont, 10, 32, timeStr, white)
 
 		dateStr := getDateStr(now)
-		tinyfont.WriteLine(disp, dateFont, 10, 54, dateStr, white)
+		tinyfont.WriteLine(disp, dateFont, 15, 54, dateStr, white)
+
+		weatherStr := weatherProvider.Current()
+		tinyfont.WriteLine(disp, dateFont, 90, 54, weatherStr, white)
 
 		err = disp.Display()
 
