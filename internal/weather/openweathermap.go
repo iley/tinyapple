@@ -14,10 +14,11 @@ var _ Provider = (*OpenWeatherMapProvider)(nil)
 
 // OpenWeatherMapProvider is an implementation of a weather Provider using OpenWeatherMap API.
 type OpenWeatherMapProvider struct {
-	mu           sync.Mutex
-	apiKey       string
-	locationName string
-	current      string
+	mu             sync.Mutex
+	apiKey         string
+	locationName   string
+	current        string
+	updateInterval time.Duration
 }
 
 // NewOpenWeatherMapProvider creates an initializes an instance of OpenWeatherMapProvider.
@@ -25,6 +26,8 @@ func NewOpenWeatherMapProvider(ctx context.Context, apiKey, locationName string)
 	p := &OpenWeatherMapProvider{
 		apiKey:       apiKey,
 		locationName: locationName,
+		// Initially update frequently because newtork might not be available immediately on boot.
+		updateInterval: 30 * time.Second,
 	}
 	go p.updateLoop(ctx)
 	return p
@@ -41,16 +44,19 @@ func (p *OpenWeatherMapProvider) Current() string {
 }
 
 func (p *OpenWeatherMapProvider) updateLoop(ctx context.Context) {
-	updateInterval := time.Hour // TODO: Consider making this a configurable option.
 	for {
 		err := p.update(ctx)
+		if err == nil {
+			// Slow down requests after first successful update.
+			p.updateInterval = 15 * time.Minute
+		}
 		if err != nil {
 			log.Infof("Could not fetch weather information from OpenWeatherMap: %s", err)
 		}
 		select {
 		case <-ctx.Done():
 			return
-		case <-time.After(updateInterval):
+		case <-time.After(p.updateInterval):
 			continue
 		}
 	}
