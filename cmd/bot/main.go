@@ -22,8 +22,8 @@ import (
 	"periph.io/x/periph/host"
 	"tinygo.org/x/tinyfont"
 
-	"github.com/iley/tinyapple/internal/screen"
-	"github.com/iley/tinyapple/internal/screen/ssd1325"
+	"github.com/iley/littlemac/internal/screen"
+	"github.com/iley/littlemac/internal/screen/ssd1325"
 )
 
 var white = color.RGBA{0xff, 0xff, 0xff, 255}

@@ -1,4 +1,4 @@
-module github.com/iley/tinyapple
+module github.com/iley/littlemac
 
 go 1.16
 

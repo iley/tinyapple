@@ -6,10 +6,10 @@ SSH_HOST=root@omega-8d52
 default: $(MIPSBIN) $(HOSTBIN)
 
 $(MIPSBIN): %: always
-	GOOS=linux GOARCH=mipsle go build -mod=vendor github.com/iley/tinyapple/cmd/$@
+	GOOS=linux GOARCH=mipsle go build -mod=vendor github.com/iley/littlemac/cmd/$@
 
 $(HOSTBIN): %: always
-	go build -mod=vendor github.com/iley/tinyapple/cmd/$@
+	go build -mod=vendor github.com/iley/littlemac/cmd/$@
 
 deploy: clock
 	ssh $(SSH_HOST) /etc/init.d/clock stop

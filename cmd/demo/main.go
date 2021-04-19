@@ -17,8 +17,8 @@ import (
 	"tinygo.org/x/tinyfont"
 	"tinygo.org/x/tinyfont/freesans"
 
-	"github.com/iley/tinyapple/internal/screen"
-	"github.com/iley/tinyapple/internal/screen/ssd1325"
+	"github.com/iley/littlemac/internal/screen"
+	"github.com/iley/littlemac/internal/screen/ssd1325"
 )
 
 func main() {

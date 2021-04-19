@@ -17,10 +17,10 @@ import (
 	"tinygo.org/x/tinyfont"
 	"tinygo.org/x/tinyfont/proggy"
 
-	"github.com/iley/tinyapple/internal/fonts"
-	"github.com/iley/tinyapple/internal/screen"
-	"github.com/iley/tinyapple/internal/screen/ssd1325"
-	"github.com/iley/tinyapple/internal/weather"
+	"github.com/iley/littlemac/internal/fonts"
+	"github.com/iley/littlemac/internal/screen"
+	"github.com/iley/littlemac/internal/screen/ssd1325"
+	"github.com/iley/littlemac/internal/weather"
 )
 
 var (
