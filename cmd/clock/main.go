@@ -80,6 +80,7 @@ func main() {
 	disp := screen.NewDisplayer(scr)
 	white := color.RGBA{0xff, 0xff, 0xff, 255}
 	black := color.RGBA{0x00, 0x00, 0x00, 255}
+	gray := color.RGBA{0x40, 0x40, 0x40, 255}
 
 	scrWidth := int16(scr.Width())
 	scrHeight := int16(scr.Height())
@@ -87,16 +88,23 @@ func main() {
 	for {
 		now := time.Now().In(tzLocation)
 
+		var textColor color.RGBA
+		if isNighttime(now) {
+			textColor = gray
+		} else {
+			textColor = white
+		}
+
 		tinydraw.FilledRectangle(disp, 0, 0, scrWidth-1, scrHeight-1, black)
 
 		timeStr := getTimeStr(now)
-		tinyfont.WriteLine(disp, timeFont, 15, 32, timeStr, white)
+		tinyfont.WriteLine(disp, timeFont, 15, 32, timeStr, textColor)
 
 		dateStr := getDateStr(now)
-		tinyfont.WriteLine(disp, dateFont, 15, 54, dateStr, white)
+		tinyfont.WriteLine(disp, dateFont, 15, 54, dateStr, textColor)
 
 		weatherStr := weatherProvider.Current()
-		tinyfont.WriteLine(disp, dateFont, 90, 54, weatherStr, white)
+		tinyfont.WriteLine(disp, dateFont, 90, 54, weatherStr, textColor)
 
 		err = disp.Display()
 
@@ -118,4 +126,10 @@ func getDateStr(now time.Time) string {
 	weekdayShort := weekday[0:3]
 	date := now.Format("02 Jan")
 	return fmt.Sprintf("%s %s", weekdayShort, date)
+}
+
+func isNighttime(now time.Time) bool {
+	// TODO: Make the time range configurable.
+	hours, _, _ := now.Clock()
+	return hours >= 22 || hours < 7
 }
