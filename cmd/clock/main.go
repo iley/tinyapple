@@ -80,7 +80,7 @@ func main() {
 	disp := screen.NewDisplayer(scr)
 	white := color.RGBA{0xff, 0xff, 0xff, 255}
 	black := color.RGBA{0x00, 0x00, 0x00, 255}
-	gray := color.RGBA{0x40, 0x40, 0x40, 255}
+	gray := color.RGBA{0x20, 0x20, 0x20, 255}
 
 	scrWidth := int16(scr.Width())
 	scrHeight := int16(scr.Height())

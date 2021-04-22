@@ -256,5 +256,6 @@ func (s *SSD1325) DrawRect(startCol, startRow, endCol, endRow uint, pattern byte
 
 func convertColor(col color.Color) byte {
 	r, g, b, _ := col.RGBA()
-	return byte((Tones - 1) * float64(r+g+b) / (0xffff * 3))
+	tone := Tones * (r + g + b) / (3 * 0x10000)
+	return byte(tone)
 }
