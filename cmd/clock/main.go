@@ -29,8 +29,8 @@ var (
 )
 
 func main() {
-	timezone := flag.String("tz", "Europe/Berlin", "timezone to show time in")
-	location := flag.String("location", "Munich, DE", "location for weather lookup")
+	timezone := flag.String("tz", "Europe/Dublin", "timezone to show time in")
+	location := flag.String("location", "Dublin, IE", "location for weather lookup")
 	owmKey := flag.String("owm", "", "OpenWeatherMap API key")
 	spiDev := flag.String("spi", "/dev/spidev0.1", "path to the SPI device")
 	dcPin := flag.String("dc", "GPIO1", "name of the D/C GPIO pin")
