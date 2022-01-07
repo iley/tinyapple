@@ -14,7 +14,7 @@ $(HOSTBIN): %: always
 deploy: clock
 	ssh $(SSH_HOST) /etc/init.d/clock stop
 	sleep 5
-	scp clock $(SSH_HOST):/mnt/mmcblk0
+	scp clock $(SSH_HOST):/root
 	ssh $(SSH_HOST) /etc/init.d/clock start
 
 internal/fonts/digits.go: digits.bdf
