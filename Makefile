@@ -1,7 +1,7 @@
 MIPSBIN=demo bot clock
 HOSTBIN=
 
-SSH_HOST=root@omega-8d52
+SSH_HOST=littlemac
 
 default: $(MIPSBIN) $(HOSTBIN)
 
