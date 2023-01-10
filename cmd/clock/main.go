@@ -12,7 +12,7 @@ import (
 	_ "time/tzdata"
 
 	log "github.com/sirupsen/logrus"
-	"periph.io/x/periph/host"
+	"periph.io/x/host/v3"
 	"tinygo.org/x/tinydraw"
 	"tinygo.org/x/tinyfont"
 	"tinygo.org/x/tinyfont/proggy"

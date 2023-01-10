@@ -1,3 +1,257 @@
+0.23.0
+---
+- **new devices**
+    - Add GC9A01 Driver (#452)
+    - Initial support for VL6180x sensor
+
+- **enhancements**
+    - **rtl8720dn**
+        - refactor by bringing this driver more in line with wifinina and espat
+    - **ssd1306**
+        - add getter method to the current buffer
+    - **makeybutton**
+        - revise to better match the algorithm defined by the original
+    - **espat,wifinina,rtl8720dn**
+        - change ssid/pass from const to var
+
+- **bugfixes**
+    - **microbitmatrix**
+        - fix inverted axis
+    - **espat**
+        - Trim quotes from IP returned by espat's GetDNS()
+    - **all**
+        - correct go fmt
+
+- **examples**
+    - **rtl8720dn**
+        - remove wifi setting
+        - add call to optional debug setting
+        - update all remaining examples for refactored API
+
+
+0.22.0
+---
+- **new devices**
+    - epd: add waveshare 2.9in (v1)
+    - makeybutton: add driver for MakeyMakey-like button
+
+- **enhancements**
+    - **rtl8720dn**
+        - add UDP close function
+        - improve error handling
+    - **net/http**
+        - improve header parsing
+        - add last-will-and-testament to MQTT
+    - **net/mqtt**
+        - adds keepalive pinging, disconnect, and graceful goroutine cleanup
+        - support for cookies when https
+        - add support for retained messsages
+
+- **bugfixes**
+    - irremote: Fix irremote reporting incorrect NEC addresses and command codes (#422)
+    - net/http:  Fix http.Get() with port specification
+
+- **build**
+    - Makefile recursively finds unit-tests
+    - switching to GHA
+
+- **updates**
+    - update tinyfont to v0.3.0
+    - update tinyfs to v0.2.0
+
+- **examples**
+    - rtl8720dn: add ./examples/rtl8720dn/version
+
+
+0.21.0
+---
+- **new devices**
+    - lsm6ds3tr: initial implementation
+    - UC8151: used in Pimoroni's badger2040 e-paper (#416)
+    - scd4x: implement driver for CO2 sensor
+
+- **enhancements**
+    - easystepper: Add support for '8-step mode'
+    - vl53l1x: Add functions for setting the device address
+    - sdcard: support thingplus-rp2040
+    - wifinina: add mutex to prevent communication race problems
+    - **ws2812**
+        - support thingplus-rp2040 board
+        - Added 125 MHz rp2040 timing
+        - Added unsafe.Pointer for pointer conversion
+
+- **bugfixes**
+    - ssd1351: Fix mirrored text on OLED display
+
+
+0.20.0
+---
+- **new devices**
+    - irremote: Add basic infra-red driver
+    - IS31FL3731: add driver for IS31FL3731 matrix LED driver (#370)
+    - l3gd20: add gyro driver
+    - SSD1289: Driver for SSD1289 LCD
+
+- **enhancements**
+    - **ili9341**
+        - add support for atsame5x
+        - added Feather board support to InitDisplay()
+        - avoid heap allocations
+    - **lps22hb**
+        - pin rename, sync with main repo
+    - **lsmXXX**
+        - unified, error handling, memory management
+    - **max7xx**
+        - Add a SetIntensity() function to max7xx driver and example
+    - **vl53l1x**
+        - Add functions for setting 'region of interest'
+        - Fix switch-case semantics
+    - **ws2812**
+        - add support for m5stamp-c3
+        - convert AVR assembly to C inline assembly
+        - support high-MHz ARMv6M chips like the RP2040
+        - write inline assembly using C instead of Go
+
+- **bugfixes**
+    - **dht**
+        - fix error check in example
+        - fix humidity and temperature extraction for DHT22 (#358)
+    - **esp8266**
+        - fix ConnectToAccessPoint timeout args
+    - **image**
+        - fix interface
+    - **pca9685**
+        - add buffered one shot write
+        - fix on=0 bug
+    - **wifinina**
+        - correct sendParamStr to handle empty strings, such as when connecting to an unsecured access point
+
+0.19.0
+---
+- **new devices**
+    - ft6336: add support for ft6336
+    - pca9685: PCA9685 driver
+    - shtc3: Sensirion SHTC3 Relative Humidity / Temperature i2c sensor
+    - sx126x: Driver for Semtech sx126x radio modules
+    - xpt2046: XPT2046 Touch driver (#350)
+- **enhancements**
+    - **hd44780i2c** 
+        - clean up for go fmt
+        - Needed fixes and update hd44780i2c.go
+    - **ili9341, ili9342**
+        - add support for m5stack
+        - add support for m5stack-core2
+    - **wifi**
+        - modify to use shared net.Adapter interface for all supported wifi devices
+    - wifinina: remove busy wait
+- **bugfixes**
+    - **hd44780** 
+        - fix 4-bit data length flag
+        - Reset data pins to output mode after reading
+    - Nano 33 BLE drivers (#351)
+- **docs**
+    - examples/wifi: add unified example for tcpclient that compiles for all supported wifi adaptors
+
+0.18.0
+---
+- **new devices**
+    - apds9960: add support for APDS-9960 Digital Proximity sensor
+    - axp192: add support for AXP192 single Cell Li-Battery and power system management IC
+    - hts221: add support for HTS221 capacitive digital sensor for relative humidity and temperature
+    - i2csoft: add support for software I2C
+    - image: add support for image/jpeg and image/png
+    - lps22hb: add support for LPS22HB MEMS nano pressure sensor
+    - lsm6dox: add support for lsm6dox accelerometer
+    - lsm9ds1: add support for lsm9ds1 accelerometer
+- **enhancements**
+    - ili9341: change to use drivers.SPI interface
+    - **ws2812**
+        - generate assembly instead of handwriting it
+        - improve timings to be compatible with the WS2811
+        - add support for 168MHz (e.g. Adafruit Feather STM32F405)
+        - add support for RISC-V
+    - wifinina: control nina pins, for example leds
+- **docs**
+    - rtl8720dn: examples for tcpclient, udpstation, mqtt, and webserver
+    - **wifinina** 
+        - nina-fw update docs
+        - examples/wifinina/http-get
+    - ili9341: refactor examples
+    - Fix broken link for SHT3x datasheet
+- **core**
+    - all: use build directives for both Go1.17 and earlier versions
+- **bugfixes**
+    - net: fix raddr of tcp conn
+    - mcp3008: fix bitshift bug
+
+0.17.1
+---
+- To correct an error in the release process. Same as 0.17.0.
+
+0.17.0
+---
+- **new devices**
+    - rtl8720dn: add support for rtl8720dn
+    - sdcard: add support for spi sdcard driver, along with fatfs
+- **enhancements**
+    - apa102: use 4-byte buffer to improve speed
+    - bmi160: avoid heap allocations
+    - ili9341: add standard SPI driver
+    - wifinina
+        - avoid fmt package
+        - Fix RSSI command for WiFiNINA + Print current SSID + Wait for correct time before printing it out + Cleanup
+    - ws2812
+        - rename the pin to ws2812
+        - add tag for nrf52833
+        - Disable interrupts before sending ws2812 data
+        - add support for qtpy and atsame5x
+- **core**
+    - modules: switch to use tinygo-org version of tinyfs package
+    - all: use machine.Serial as the default output
+
+0.16.0
+---
+- **new devices**
+    - aht20: add device
+    - ina260: add new i2c device
+    - keypad: add 4x4 keypad driver (#226)
+    - max7219: add driver support
+    - mcp2515: add support for mcp2515 CAN device
+    - p1am: support the P1AM-100 hardware watchdog
+    - pcf8563: add support for pcf8563 real time clock
+    - servo: add driver using PWM
+    - tm1637: add support for tm1637 7-segment LED
+    - tone: add package for producing tones using the PWM interface
+- **enhancements**
+    - pwm: update drivers with PWM to use new interface
+    - wifinina: Make TLS work over WiFiNINA Verified on Arduino Nano33 IoT and nina fw v1.4.5
+    - ssd1306: Enable reset screen for SSD1306 via I2C
+    - st7789: add scrolling functions to match st7735
+- **bugfixes**
+    - wifinina:
+        - fix getMACAddress and getTime
+        - fix println + cleanup
+        - remove debug flag and remove unnecessary padding call
+        - fix padding and implement missing functions
+    - flash: fix EraseBlocks method which is erasing sectors instead
+- **core**
+    - all: use interfaces for UART objects
+    - all: do not take the pointer of an I2C object
+    - adc: update drivers with ADC to use new config struct
+- **testing**
+    - tester:
+        - add a mock for command-oriented i2c devices
+        - add 16-bit register mock device
+
+- **docs**
+    - ssd1306: example of ssd1306 with 128x64 display over I2C
+    - wifinina:
+        - add information about Adafruit boards with ESP32 wifi coprocessors, and modify examples to remove code that was both not being used, and also prevented many Adafruit boards from being able to be targeted by the examples
+        - update docs to simplify the nina-fw update process
+        - example that connects to AP and prints ip addresses, time and mac
+    - p1am: documentation and example program
+    - add missing new drivers added since last release
+
 0.15.0
 ---
 - **new devices**

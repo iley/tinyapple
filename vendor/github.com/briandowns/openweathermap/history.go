@@ -1,4 +1,4 @@
-// Copyright 2015 Brian J. Downs
+// Copyright 2022 Brian J. Downs
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package openweathermap
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"net/url"
 	"strings"
 )
@@ -32,13 +33,13 @@ type HistoricalParameters struct {
 // Rain struct contains 3 hour data
 type Rain struct {
 	OneH   float64 `json:"1h,omitempty"`
-	ThreeH float64 `json:"3h"`
+	ThreeH float64 `json:"3h,omitempty"`
 }
 
 // Snow struct contains 3 hour data
 type Snow struct {
 	OneH   float64 `json:"1h,omitempty"`
-	ThreeH float64 `json:"3h"`
+	ThreeH float64 `json:"3h,omitempty"`
 }
 
 // WeatherHistory struct contains aggregate fields from the above
@@ -99,6 +100,10 @@ func (h *HistoricalWeatherData) HistoryByName(location string) error {
 	}
 	defer response.Body.Close()
 
+	if response.StatusCode == http.StatusUnauthorized {
+		return errInvalidKey
+	}
+
 	if err = json.NewDecoder(response.Body).Decode(&h); err != nil {
 		return err
 	}
@@ -115,6 +120,10 @@ func (h *HistoricalWeatherData) HistoryByID(id int, hp ...*HistoricalParameters)
 		}
 		defer response.Body.Close()
 
+		if response.StatusCode == http.StatusUnauthorized {
+			return errInvalidKey
+		}
+
 		if err = json.NewDecoder(response.Body).Decode(&h); err != nil {
 			return err
 		}
@@ -125,6 +134,10 @@ func (h *HistoricalWeatherData) HistoryByID(id int, hp ...*HistoricalParameters)
 		return err
 	}
 	defer response.Body.Close()
+
+	if response.StatusCode == http.StatusUnauthorized {
+		return errInvalidKey
+	}
 
 	if err = json.NewDecoder(response.Body).Decode(&h); err != nil {
 		return err
@@ -140,6 +153,10 @@ func (h *HistoricalWeatherData) HistoryByCoord(location *Coordinates, hp *Histor
 		return err
 	}
 	defer response.Body.Close()
+
+	if response.StatusCode == http.StatusUnauthorized {
+		return errInvalidKey
+	}
 
 	if err = json.NewDecoder(response.Body).Decode(&h); err != nil {
 		return err

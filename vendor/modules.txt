@@ -1,4 +1,4 @@
-# github.com/briandowns/openweathermap v0.16.0
+# github.com/briandowns/openweathermap v0.19.0
 ## explicit; go 1.13
 github.com/briandowns/openweathermap
 # github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
@@ -7,15 +7,15 @@ github.com/nfnt/resize
 # github.com/pkg/errors v0.9.1
 ## explicit
 github.com/pkg/errors
-# github.com/sirupsen/logrus v1.8.1
+# github.com/sirupsen/logrus v1.9.0
 ## explicit; go 1.13
 github.com/sirupsen/logrus
-# golang.org/x/sys v0.0.0-20210415045647-66c3f260301c
-## explicit; go 1.12
+# golang.org/x/sys v0.4.0
+## explicit; go 1.17
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-# gopkg.in/tucnak/telebot.v2 v2.3.5
+# gopkg.in/tucnak/telebot.v2 v2.5.0
 ## explicit; go 1.13
 gopkg.in/tucnak/telebot.v2
 # periph.io/x/conn/v3 v3.7.0
@@ -52,45 +52,14 @@ periph.io/x/host/v3/pmem
 periph.io/x/host/v3/rpi
 periph.io/x/host/v3/sysfs
 periph.io/x/host/v3/videocore
-# periph.io/x/periph v3.6.7+incompatible
-## explicit
-periph.io/x/periph
-periph.io/x/periph/conn
-periph.io/x/periph/conn/gpio
-periph.io/x/periph/conn/gpio/gpioreg
-periph.io/x/periph/conn/gpio/gpiostream
-periph.io/x/periph/conn/i2c
-periph.io/x/periph/conn/i2c/i2creg
-periph.io/x/periph/conn/physic
-periph.io/x/periph/conn/pin
-periph.io/x/periph/conn/pin/pinreg
-periph.io/x/periph/conn/spi
-periph.io/x/periph/conn/spi/spireg
-periph.io/x/periph/host
-periph.io/x/periph/host/allwinner
-periph.io/x/periph/host/am335x
-periph.io/x/periph/host/bcm283x
-periph.io/x/periph/host/beagle/black
-periph.io/x/periph/host/beagle/bone
-periph.io/x/periph/host/beagle/green
-periph.io/x/periph/host/chip
-periph.io/x/periph/host/cpu
-periph.io/x/periph/host/distro
-periph.io/x/periph/host/fs
-periph.io/x/periph/host/odroidc1
-periph.io/x/periph/host/pine64
-periph.io/x/periph/host/pmem
-periph.io/x/periph/host/rpi
-periph.io/x/periph/host/sysfs
-periph.io/x/periph/host/videocore
-# tinygo.org/x/drivers v0.15.1
+# tinygo.org/x/drivers v0.23.0
 ## explicit; go 1.15
 tinygo.org/x/drivers
-# tinygo.org/x/tinydraw v0.0.0-20200416172542-c30d6d84353c
-## explicit
+# tinygo.org/x/tinydraw v0.3.0
+## explicit; go 1.16
 tinygo.org/x/tinydraw
-# tinygo.org/x/tinyfont v0.2.1
-## explicit; go 1.15
+# tinygo.org/x/tinyfont v0.3.0
+## explicit; go 1.17
 tinygo.org/x/tinyfont
 tinygo.org/x/tinyfont/freesans
 tinygo.org/x/tinyfont/proggy
