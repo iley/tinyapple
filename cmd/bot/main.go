@@ -19,7 +19,7 @@ import (
 	"github.com/nfnt/resize"
 	log "github.com/sirupsen/logrus"
 	tb "gopkg.in/tucnak/telebot.v2"
-	"periph.io/x/periph/host"
+	"periph.io/x/host/v3"
 	"tinygo.org/x/tinyfont"
 
 	"github.com/iley/littlemac/internal/screen"
