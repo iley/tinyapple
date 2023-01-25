@@ -131,5 +131,5 @@ func getDateStr(now time.Time) string {
 func isNighttime(now time.Time) bool {
 	// TODO: Make the time range configurable.
 	hours, _, _ := now.Clock()
-	return hours >= 22 || hours < 7
+	return hours >= 23 || hours < 7
 }
