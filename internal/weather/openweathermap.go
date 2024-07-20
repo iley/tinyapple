@@ -100,6 +100,7 @@ func getWeatherString(weather *openweathermap.OneCallData) string {
 		prefix = "+"
 	}
 
+	// If it's going to rain at any point today, show an umbrella symbol.
 	rainIndicator := ""
 	if weather.Daily == nil || len(weather.Daily) == 0 {
 		log.Warn("No daily weather data available")
