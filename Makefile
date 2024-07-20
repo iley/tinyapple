@@ -11,6 +11,9 @@ $(MIPSBIN): %: always
 $(HOSTBIN): %: always
 	go build -mod=vendor github.com/iley/littlemac/cmd/$@
 
+scp: clock
+	scp clock $(SSH_HOST):/root
+
 deploy: clock
 	ssh $(SSH_HOST) /etc/init.d/clock stop
 	sleep 5

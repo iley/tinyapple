@@ -12,20 +12,24 @@ import (
 
 var _ Provider = (*OpenWeatherMapProvider)(nil)
 
+const UmbrellaSymbol = "☂"
+
 // OpenWeatherMapProvider is an implementation of a weather Provider using OpenWeatherMap API.
 type OpenWeatherMapProvider struct {
 	mu             sync.Mutex
 	apiKey         string
-	locationName   string
+	locationLat		 float64
+	locationLon		 float64
 	current        string
 	updateInterval time.Duration
 }
 
 // NewOpenWeatherMapProvider creates an initializes an instance of OpenWeatherMapProvider.
-func NewOpenWeatherMapProvider(ctx context.Context, apiKey, locationName string) *OpenWeatherMapProvider {
+func NewOpenWeatherMapProvider(ctx context.Context, apiKey string, lat, lon float64) *OpenWeatherMapProvider {
 	p := &OpenWeatherMapProvider{
 		apiKey:       apiKey,
-		locationName: locationName,
+		locationLat: lat,
+		locationLon: lon,
 		// Initially update frequently because newtork might not be available immediately on boot.
 		updateInterval: 30 * time.Second,
 	}
@@ -51,7 +55,7 @@ func (p *OpenWeatherMapProvider) updateLoop(ctx context.Context) {
 			p.updateInterval = 15 * time.Minute
 		}
 		if err != nil {
-			log.Infof("Could not fetch weather information from OpenWeatherMap: %s", err)
+			log.Warnf("Could not fetch weather information from OpenWeatherMap: %s", err)
 		}
 		select {
 		case <-ctx.Done():
@@ -62,26 +66,47 @@ func (p *OpenWeatherMapProvider) updateLoop(ctx context.Context) {
 	}
 }
 
-func (p *OpenWeatherMapProvider) update(ctx context.Context) error {
-	cwd, err := openweathermap.NewCurrent("C", "en", p.apiKey)
+func (p *OpenWeatherMapProvider) update(_ context.Context) error {
+	log.Debugf("Fetching weather information from OpenWeatherMap lat=%f lon=%f", p.locationLat, p.locationLon)
+
+	weatherData, err := openweathermap.NewOneCall("C", "en", p.apiKey, []string{
+		openweathermap.ExcludeMinutely,
+		openweathermap.ExcludeHourly,
+		openweathermap.ExcludeAlerts,
+	})
+
 	if err != nil {
 		return err
 	}
-	if err = cwd.CurrentByName(p.locationName); err != nil {
+
+	if err = weatherData.OneCallByCoordinates(&openweathermap.Coordinates{Latitude: p.locationLat, Longitude: p.locationLon}); err != nil {
 		return err
 	}
-	newCurrent := getWeatherString(cwd)
+	
+	log.Debugf("Done fetching weather information: %v", weatherData)
+
+	newCurrent := getWeatherString(weatherData)
 	p.mu.Lock()
 	p.current = newCurrent
 	p.mu.Unlock()
+
 	return nil
 }
 
-func getWeatherString(cwd *openweathermap.CurrentWeatherData) string {
-	temp := cwd.Main.Temp
+func getWeatherString(weather *openweathermap.OneCallData) string {
+	temp := weather.Current.Temp
 	prefix := ""
 	if temp > 0 {
 		prefix = "+"
 	}
-	return fmt.Sprintf("%s%.f°C", prefix, temp)
+
+	rainIndicator := ""
+	if weather.Daily == nil || len(weather.Daily) == 0 {
+		log.Warn("No daily weather data available")
+		rainIndicator = "?"
+	} else if weather.Daily[0].Rain > 0 {
+		rainIndicator = UmbrellaSymbol
+	}
+
+	return fmt.Sprintf("%s%.f°C%s", prefix, temp, rainIndicator)
 }

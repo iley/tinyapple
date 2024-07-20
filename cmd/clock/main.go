@@ -30,7 +30,8 @@ var (
 
 func main() {
 	timezone := flag.String("tz", "Europe/Dublin", "timezone to show time in")
-	location := flag.String("location", "Dublin, IE", "location for weather lookup")
+	lat := flag.Float64("lat", 53.3498, "latitude of the location for weather")
+	lon := flag.Float64("lon", -6.2603, "longitude of the location for weather")
 	owmKey := flag.String("owm", "", "OpenWeatherMap API key")
 	spiDev := flag.String("spi", "/dev/spidev0.1", "path to the SPI device")
 	dcPin := flag.String("dc", "GPIO1", "name of the D/C GPIO pin")
@@ -61,7 +62,7 @@ func main() {
 		log.Fatalf("timezone loading error: %s", err)
 	}
 
-	weatherProvider := weather.NewOpenWeatherMapProvider(context.Background(), *owmKey, *location)
+	weatherProvider := weather.NewOpenWeatherMapProvider(context.Background(), *owmKey, *lat, *lon)
 
 	log.Debugf("initializing host...")
 	if _, err := host.Init(); err != nil {
@@ -98,13 +99,13 @@ func main() {
 		tinydraw.FilledRectangle(disp, 0, 0, scrWidth-1, scrHeight-1, black)
 
 		timeStr := getTimeStr(now)
-		tinyfont.WriteLine(disp, timeFont, 15, 32, timeStr, textColor)
+		tinyfont.WriteLine(disp, timeFont, 15, 35, timeStr, textColor)
 
 		dateStr := getDateStr(now)
-		tinyfont.WriteLine(disp, dateFont, 15, 54, dateStr, textColor)
+		tinyfont.WriteLine(disp, dateFont, 10, 57, dateStr, textColor)
 
 		weatherStr := weatherProvider.Current()
-		tinyfont.WriteLine(disp, dateFont, 90, 54, weatherStr, textColor)
+		tinyfont.WriteLine(disp, dateFont, 82, 57, weatherStr, textColor)
 
 		err = disp.Display()
 
